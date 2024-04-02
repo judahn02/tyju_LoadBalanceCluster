@@ -11,40 +11,54 @@ int find_nth_occurrence(const char *str, char target, int n) ;
 
 int main() {
     FILE *fp;
-    char buffer[MAX_LINE_LENGTH];
+    char buffer[MAX_LINE_LENGTH] ;
+    char buffer2[MAX_LINE_LENGTH] ;
+    int check1, check2 ;
+    int indexCPU1, indexCPU2 ;
+    double idle, freeRAM ;
+    int count ;
     
-    // Open the top command in read mode through a pipe
-    fp = popen("top -n 1 -b -Em", "r");
-    if (fp == NULL) {
-        fprintf(stderr, "Failed to run top command\n");
-        exit(1);
-    }
+    for (int i = 0; i < 50; i++)
+    {
+        count = -1 ;
+        // Open the top command in read mode through a pipe
+        fp = popen("top -n 1 -b -Em", "r");
+        if (fp == NULL) {
+            fprintf(stderr, "Failed to run top command\n");
+            exit(1);
+        }
 
-    // Read the output line by line
-    while (fgets(buffer, sizeof(buffer), fp) != NULL) {
-        // Example: print each line
-        
-
-        // Here you can parse the output and extract the information you need
-        // For example, you can use string manipulation functions like strtok()
-
-        // Example: tokenize the line using space as delimiter
-        char *token = strtok(buffer, " ");
-        // if((!strcmp(token, "\%Cpu(s):")) || (!strcmp(token, "MiB")))
-        //     printf("%s", buffer);
-        if((!strcmp(token, "\%Cpu(s):")) || (!strcmp(token, "MiB")))
-            while (token != NULL) {
-                // Process each token (e.g., store them in different variables)
-                printf("%s", token);
-
-                // Move to the next token
-                token = strtok(NULL, " ");
+        while (fgets(buffer, sizeof(buffer), fp) != NULL)
+        {
+            count++ ;
+            if(!((count == 2) || (count == 3)))
+            {
+                
+                continue;
             }
+            if (count == 2)
+            {
+                indexCPU1 = find_nth_occurrence(buffer, ',',3) ;
+                indexCPU2 = find_nth_occurrence(buffer, ',',4) ;
+                strncpy(buffer2, buffer+indexCPU1+1, indexCPU2-indexCPU1-3) ;
+                idle = strtod(buffer2, NULL) ;
+                printf("%lf\n", idle) ;
+            }
+            else if (count == 3)
+            {
+                indexCPU1 = find_nth_occurrence(buffer, ',',1) ;
+                indexCPU2 = find_nth_occurrence(buffer, ',',2) ;
+                strncpy(buffer2, buffer+indexCPU1+1, indexCPU2-indexCPU1-1) ;
+                // printf("%s\n", buffer2) ;
+                freeRAM = strtod(buffer2, NULL) ;
+                printf("%lf\n", freeRAM) ;
+                break;
+            }
+        }
+        
+        // Close the pipe
+        pclose(fp);
     }
-
-    // Close the pipe
-    pclose(fp);
-
     return 0;
 }
 

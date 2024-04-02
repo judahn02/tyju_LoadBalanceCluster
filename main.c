@@ -21,9 +21,10 @@ int main(int argc, char **argv)
 {
     // call for CPU speed in GHz
     double CPUspeed = getCPUspeed() ;
-
+    // printf("%f\n", CPUspeed) ;
     // call for CPU IDLE rate and Ram Idle Size MB
     double idleNfram[2] ;
+    
 
 
     // calculate the Rv weight 
