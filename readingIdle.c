@@ -1,9 +1,16 @@
-
-// #include <limits.h> // for ULONG_MAX
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
+
+/*
+    This program demonstrates how reading and processing
+    the value of idle will look like.
+*/
+
+// headder added by the makefile
+#include "CPU_CACHE.h"
 
 #define MAX_LINE_LENGTH 1024
 
@@ -22,62 +29,51 @@ void CPU_M_Load_From_Token(char*, CPU_M*) ;
 
 void loadBufferFromProcStat(char*) ;
 
-
 int main(int argc, char **argv)
-//First make the loop and have it display
-// to the screen.
+// This program nees to utilize the Cache.
 {
+    int size = 10 ;
+    CPU_CACHE cache = CPU_CACHE_Init(size) ;
+    unsigned long idleDif, totalDif ;
+
     char buffer[MAX_LINE_LENGTH] ;
     char *token ;
-    unsigned long total, total2, totalDifference ;
-    unsigned long idleDifference ;
-    CPU_M cpuMeta, cpuMeta2 ;
+    CPU_M cpuMeta ;
+    unsigned long total ;
     long double percent ;
 
-    loadBufferFromProcStat(buffer) ;
+    struct timespec delay;
+    delay.tv_sec = 0;              // Seconds
+    delay.tv_nsec = 100000000 * 2;     // Nanoseconds (0.2 seconds)
 
-    //Load token
-    token = strtok(buffer, " ") ;
-
-    CPU_M_Load_From_Token(token, &cpuMeta) ;
     
-
-    total = cpuMeta.user + cpuMeta.nice + cpuMeta.system + 
-        cpuMeta.idle + cpuMeta.iowait + cpuMeta.irq + cpuMeta.softirq ;
-    percent = (long double) cpuMeta.idle/(total) * 100 ;
-    printf("idle: %ld, total: %ld\n", cpuMeta.idle, total) ; 
-    printf("the total idle percent being: %Lf\% \n", percent) ;
-    
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 20; i++)
     {
-        sleep(1) ;
-        loadBufferFromProcStat(buffer) ;
-        token = strtok(buffer, " ") ;
-        CPU_M_Load_From_Token(token, &cpuMeta2) ;
-        total2 = cpuMeta2.user + cpuMeta2.nice + cpuMeta2.system + 
-            cpuMeta2.idle + cpuMeta2.iowait + cpuMeta2.irq + cpuMeta2.softirq ;
         
-        totalDifference = total2 - total ;
-        idleDifference = cpuMeta2.idle - cpuMeta.idle ;
-        percent = (long double) idleDifference / totalDifference * 100 ;
-        printf("idle: %ld, total: %ld\n", cpuMeta2.idle, total2) ; 
-        printf("idle Diff.: %ld, total Diff.: %ld\n", idleDifference, totalDifference) ;
-        printf("the idle percent over a second is: %Lf\% \n", percent) ;
+        loadBufferFromProcStat(buffer) ;
 
-        total = total2 ;
-        cpuMeta.idle = cpuMeta2.idle ;
-        cpuMeta.iowait = cpuMeta2.iowait ;
-        cpuMeta.irq = cpuMeta2.irq ;
-        cpuMeta.nice = cpuMeta2.nice ;
-        cpuMeta.softirq = cpuMeta2.softirq ;
-        cpuMeta.system = cpuMeta2.system ;
-        cpuMeta.user = cpuMeta2.user ;
+        token = strtok(buffer, " ") ;
+
+        CPU_M_Load_From_Token(token, &cpuMeta) ;
+
+        total = cpuMeta.user + cpuMeta.nice + cpuMeta.system + 
+            cpuMeta.idle + cpuMeta.iowait + cpuMeta.irq + cpuMeta.softirq ;
+
+        cache = CPU_CACHE_Update_Values(cache, cpuMeta.idle, total) ;
+
+        nanosleep(&delay, NULL) ;
     }
 
+    CPU_CACHE_Display(cache) ;
 
-    return 0 ;
+    CPU_CACHE_Get_Difference(cache, &idleDif, &totalDif) ;
+    percent = (long double) idleDif / totalDif * 100 ;
+    printf("idle diff: %ld, total diff: %ld\n", idleDif, totalDif) ;
+    printf("the idle percent over a second is: %Lf\% \n", percent) ;
 
+    CPU_CACHE_Free(cache, size) ;
 }
+
 
 void CPU_M_Load_From_Token(char *token, CPU_M *cpuMeta)
 {
@@ -108,6 +104,7 @@ void CPU_M_Load_From_Token(char *token, CPU_M *cpuMeta)
             cpuMeta->iowait, cpuMeta->irq, cpuMeta->softirq) ;
     */
 }
+
 
 void loadBufferFromProcStat(char *buffer)
 /*

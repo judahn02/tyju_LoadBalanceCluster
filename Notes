@@ -40,3 +40,20 @@ For creating multible processes: https://www.geeksforgeeks.org/fork-system-call/
 There is a possible output to use is /proc/loadavg
 use: https://stackoverflow.com/questions/11987495/what-do-the-numbers-in-proc-loadavg-mean-on-linux
 
+4/3/24
+I am changing the algorithm a little.
+idle will be a value between 0 < x < 1,
+and I am also introducing a new constant.
+It is the core constant.
+It is calculated as follows: (# of cores - 1) / (tasks currently assigned to computer).
+It will be applied on the by the scheduler when it initializes
+and collects tasks.
+
+Idle is almost complete, I have the refrence code for the threadding, cache code, and the idle reading.
+Time to combine.
+
+What I did?
+refine the code reguarding CPU_CACHE
+started organising code into structure: include, lib, source, tests
+made refrence code for the multithreading
+started new code for combining cache, thead, and reading idle.

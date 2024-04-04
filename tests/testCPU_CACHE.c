@@ -13,11 +13,14 @@ int main(int argc, char **argv)
 
     for (int i = 0; i < 15; i++)
         cache = CPU_CACHE_Update_Values(cache, i, i*100) ;
-    
-    CPU_CACHE_Display(cache) ;
 
     CPU_CACHE_Get_Difference(cache, &idleDif, &totalDif) ;
+
+    
+    printf("!! This is only a test of the cache library. !!\n") ;
+    CPU_CACHE_Display(cache) ;
     printf("idle diff: %ld, total diff: %ld\n", idleDif, totalDif) ;
+    printf("QQ This is only a test of the cache library. !!\n") ;
 
     CPU_CACHE_Free(cache, size) ;
 }
