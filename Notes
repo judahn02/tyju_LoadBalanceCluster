@@ -57,3 +57,7 @@ refine the code reguarding CPU_CACHE
 started organising code into structure: include, lib, source, tests
 made refrence code for the multithreading
 started new code for combining cache, thead, and reading idle.
+
+
+4/4/24
+Just finished the libCPU_Idle_Read library, the idle value is now ready to use.

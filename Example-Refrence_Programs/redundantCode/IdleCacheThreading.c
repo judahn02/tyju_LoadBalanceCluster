@@ -1,41 +1,20 @@
 
-
 #include <pthread.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+
+#include "CPU_Idle_Read.h"
 
 
-struct cpu_meta
-{
-    int run ;
-    int count ;
-    pthread_mutex_t mutex ;
-};
-
-typedef struct cpu_meta *CPU_Meta ;
-
-void *templeteCount(void *vargp)
-{
-    CPU_Meta meta = (CPU_Meta)vargp ;
-
-    while(meta->run)
-    {
-        pthread_mutex_lock(&(meta->mutex)) ;
-        meta->count++ ;
-        pthread_mutex_unlock(&(meta->mutex)) ;
-        sleep(1) ;
-    }
-    printf("templeteCount is ending.\n") ;
-}
-
+//Making a new library called CPU_Idle_Read
 int main(int argc, char **argv)
 {
+    //Initialize
     pthread_t tid; 
     CPU_Meta meta ;
     int loop = 1 ;
     int userInput ; 
 
+    //setup and start thread
     meta = (CPU_Meta) malloc(sizeof(struct cpu_meta)) ;
     meta->run = 1 ;
     meta->count = 0 ;
@@ -43,8 +22,11 @@ int main(int argc, char **argv)
         fprintf(stderr, "Mutex initialization failed\n");
         return 1;
     }
-    pthread_create(&tid, NULL, templeteCount, (void *)meta) ;
 
+    //This is now implemented in just the library, no main should need to refrence it.
+    //pthread_create(&tid, NULL, idleCacheLoad, (void *)meta) ;
+
+    //user menu
     while (loop)
     {
         printf("Please enter 1 or 0: 1 to get current count, 0 to exit.: ") ;
@@ -69,12 +51,14 @@ int main(int argc, char **argv)
         }
     }
 
-    //Exiting
+
+    //join thread
     pthread_join(tid, NULL) ;
+
+
+    //free memmory
     pthread_mutex_destroy(&(meta->mutex)) ;
     free(meta) ;
 
     return 0 ;
-
 }
-
