@@ -4,6 +4,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include "CPU_Idle_Read.h"
+
 /*
 Description:
     This program will demonstrate the application of the 
@@ -15,22 +17,31 @@ Description:
 
 double getCPUspeed(void) ;
 
-void getIdleRateAndFreeRam(double[2]) ;
-
 int main(int argc, char **argv)
 {
     // call for CPU speed in GHz
     double CPUspeed = getCPUspeed() ;
     // printf("%f\n", CPUspeed) ;
     // call for CPU IDLE rate and Ram Idle Size MB
-    double idleNfram[2] ;
-    
+    float timeOver = 3 ;// 2 seconds
+    float frequency = 0.2 ; // 0.4 seconds refresh
+    CPU_Meta meta = CPU_Idle_init(timeOver, frequency) ;
+    unsigned long idleDif, totalDif ;
+    long double percent ;
+
+    CPU_Idle_Get_Difference(meta, &idleDif, &totalDif) ;
+    percent = (long double) idleDif / totalDif * 100 ;
+    printf("idle diff: %ld, total diff: %ld\n", idleDif, totalDif) ;
+    printf("the idle percent over a second is: %Lf%% \n", percent) ;
+    // CPU_Idle_Print_Cache(meta) ;
 
 
     // calculate the Rv weight 
 
     //print PS value.
 
+
+    CPU_Idle_Close(meta) ;
     return 0 ;
 }
 
@@ -78,9 +89,4 @@ double getCPUspeed(void)
     }
     pclose(fp) ;
     return total/count2 ;
-}
-
-void getIdleRateAndFreeRam(double data[2])
-{
-
 }

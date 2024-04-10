@@ -1,0 +1,67 @@
+At this point in time I have been able to pull information from the top command but it has come with two limitations.
+It is too slow and does not effectivly calculate idle CPU time.
+
+I have read more about the /proc directory and I am understanding its potential.
+I will be utilizing multithreading to accomplicte my goals.
+
+Using a custom stress tester, the idle does not drop to zero unless all cores are loaded,
+    So it will stay 100 if a single core is not being utilized at all,
+    This will be kept in mind as I make the algorithm.
+    The alternative to this is the take the top X processes, and take their %CPU scores.
+    Work from there. (X is the number of cores available from the CPU).
+
+
+I was working with the second idea and came to a realization:
+'''
+For PS the percent CPU is based on the lifetime of the process. Basically (user time + system time) / (now - process start time).
+
+So 5% means the process has been bothering the CPU 5% of the time it has been alive.
+
+Top does it differently, it's based on the refresh time of top. So most of the time these numbers will not match.
+''' https://unix.stackexchange.com/questions/460832/how-does-ps-measure-cpu-per-process-and-can-this-be-changed
+
+I think I am just hitting the limit that what ever I do, I can not 
+get the overall CPU utilization. I don't know how windows does it.
+But maybe I should investigate and see if that gives me an answer.
+
+
+Due to time restrictions, I will just be using the data from 
+readingProcStat.c
+
+One thing I need to look into implementing in the future is utilizing nice values.
+Follow this webcite: https://www.redhat.com/sysadmin/manipulate-process-priority
+
+look into the sys/* header
+
+In the future, look into how windows calculcates CPU utilization
+
+For creating multible processes: https://www.geeksforgeeks.org/fork-system-call/
+
+There is a possible output to use is /proc/loadavg
+use: https://stackoverflow.com/questions/11987495/what-do-the-numbers-in-proc-loadavg-mean-on-linux
+
+4/3/24
+I am changing the algorithm a little.
+idle will be a value between 0 < x < 1,
+and I am also introducing a new constant.
+It is the core constant.
+It is calculated as follows: (# of cores - 1) / (tasks currently assigned to computer).
+It will be applied on the by the scheduler when it initializes
+and collects tasks.
+
+Idle is almost complete, I have the refrence code for the threadding, cache code, and the idle reading.
+Time to combine.
+
+What I did?
+refine the code reguarding CPU_CACHE
+started organising code into structure: include, lib, source, tests
+made refrence code for the multithreading
+started new code for combining cache, thead, and reading idle.
+
+
+4/4/24
+Just finished the libCPU_Idle_Read library, the idle value is now ready to use.
+
+
+4/10/24
+Now woring on the main system. 
