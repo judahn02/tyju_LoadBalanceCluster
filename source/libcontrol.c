@@ -1,24 +1,35 @@
 
 #include <mpi.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include "control.h"
+#include "sharedFunctions.h"
 
-void collect_tasks(void) ;
 
-void control_init()
+
+void control_init(int worldSize, int worldRank)
+//  This is node 0
 {
     // Initializing
+    pthread_t pid ;
+    printf("sleeping for 8 seconds.\n") ;
+    sleep(8) ;
+    send_kill(worldSize, worldRank) ;
 
-    while(1) //this should be based on if there are tasks are not.
-    {
-        // call tmanage for id
 
-        // send tasks to recieved id
-    }
+
+
+
+    // sent the kill command.
+    printf("I am the control.\n") ;
+
+    // MPI_Barrier(MPI_COMM_WORLD) ;
+
+    pthread_create(&pid, NULL, thrededBarrier, NULL) ;
+    pthread_join(pid, NULL) ;
+    return ;
 
 }
 
-void collect_tasks()
-{
-    
-}

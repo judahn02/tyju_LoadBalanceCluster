@@ -1,92 +1,68 @@
 
+
+#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <errno.h>
 
-#include "CPU_Idle_Read.h"
+#include "control.h"
+#include "worker.h"
+#include "tableManage.h"
 
-/*
-Description:
-    This program will demonstrate the application of the 
-    functions that are responsiable for calcuating the 
-    Priority service value.
-*/
+// void LoadBalance_Init (int world_size, int world_rank) ;
 
-#define MAX_LINE_LENGTH 1024 
-
-double getCPUspeed(void) ;
-
-int main(int argc, char **argv)
+int main (int argc, char **argv)
 {
-    // call for CPU speed in GHz
-    double CPUspeed = getCPUspeed() ;
-    // printf("%f\n", CPUspeed) ;
-    // call for CPU IDLE rate and Ram Idle Size MB
-    float timeOver = 3 ;// 2 seconds
-    float frequency = 0.2 ; // 0.4 seconds refresh
-    CPU_Meta meta = CPU_Idle_init(timeOver, frequency) ;
-    unsigned long idleDif, totalDif ;
-    long double percent ;
-
-    CPU_Idle_Get_Difference(meta, &idleDif, &totalDif) ;
-    percent = (long double) idleDif / totalDif * 100 ;
-    printf("idle diff: %ld, total diff: %ld\n", idleDif, totalDif) ;
-    printf("the idle percent over a second is: %Lf%% \n", percent) ;
-    // CPU_Idle_Print_Cache(meta) ;
-
-
-    // calculate the Rv weight 
-
-    //print PS value.
-
-
-    CPU_Idle_Close(meta) ;
-    return 0 ;
-}
-
-double getCPUspeed(void)
-/*
-    Description: 
-*/
-{
-    FILE *fp ;
-    char buffer[MAX_LINE_LENGTH] ;
-    int count, count2 = 0 ;
-    double speed ;
-    double total = 0 ;
-
-    fp = popen("cat /proc/cpuinfo | grep Hz", "r") ;
-    if (fp == NULL) {
-        fprintf(stderr, "Failed to run command\n") ;
-        exit(1) ; //does C allow throwing of errors?
-    }
-
-    while (fgets(buffer, sizeof(buffer), fp) != NULL)
+    // int control = 0 ;
+    int provided;
+    MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
+    if(provided < MPI_THREAD_MULTIPLE)
     {
-        char *token = strtok(buffer, " ") ;
-
-        count = 0 ;
-
-        while (token != NULL)
-        {
-            if (count == 2)
-            {
-                speed = strtod((const char*)token, NULL) ;
-                if (errno == ERANGE)
-                {
-                    printf("There was an issue with converting the CPU speed.\n");
-                    exit(2) ;
-                }
-                    
-                count2++ ;
-                total += (speed/1000) ;
-            }
-
-            token = strtok(NULL, " ") ;
-            count++ ;
-        }
+        printf("The threading support level is lesser than that demanded.\n");
+        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
-    pclose(fp) ;
-    return total/count2 ;
+    else
+    {
+        printf("The threading support level corresponds to that demanded.\n");
+    }
+
+    int world_size, world_rank ;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank) ;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size) ;
+
+    /*
+        Ok, there needs to be at least 3 computers.
+        One to be the server, one to be the data table,
+        and the rest to be the worker nodes.
+    */
+    if (world_size < 3)
+    {
+        printf("There needs to be 3 or more notes to work on.") ;
+        MPI_Finalize() ;
+        MPI_Abort(MPI_COMM_WORLD, 1) ;
+        exit(1) ;
+    }
+    if (world_rank == 0)
+        control_init(world_size, world_rank) ;
+    else if (world_rank == 1)
+        tmanage_init(world_size, world_rank) ;
+    else
+        worker_init(world_size, world_rank) ;
+
+    MPI_Finalize() ;
 }
+
+// void LoadBalance_Init (int world_size, int world_rank)
+// {
+//     // maybe a future algorithm to pick which nodes is best to
+//     //  be control, Tmanage, and workers. For now: 0 is control,
+//     //  1 is Tmanage, and 2+ is the workers.
+
+//     if (world_rank == 0)
+//         control_init() ;
+//     else if (world_rank == 1)
+//         tmanage_init() ;
+//     else
+//         worker_init() ;
+    
+//     return ;
+// }

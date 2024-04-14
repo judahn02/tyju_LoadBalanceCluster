@@ -16,7 +16,7 @@ void work()
     clock_t start, end ;
     double runTime ;
     int i, num = 1, primes = 0 ;
-    int primesArray[SIZE] ;
+    // int primesArray[SIZE] ;
     int count = 0 ;
 
     start = clock() ;
@@ -31,7 +31,7 @@ void work()
         if (i == num)
         {
             primes++;
-            primesArray[count] = i ;
+            // primesArray[count] = i ;
             count++ ;
         }
         num++;
